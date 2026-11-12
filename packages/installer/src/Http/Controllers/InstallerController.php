@@ -7,7 +7,7 @@
  *   @copyright  Copyright (c) 1stake, All rights reserved
  *   @author     1stake <sales@1stake.app>
  *   @see        https://1stake.app
-*/
+ */
 
 namespace Packages\Installer\Http\Controllers;
 
@@ -58,9 +58,12 @@ class InstallerController
     
     public function view(Request $request, $step)
     {
-        
         if ($step > 1 && !$request->session()->has('app_redirect')) {
-            return redirect()->route('install.view', ['step' => 1]);
+            try {
+                DB::connection()->getPdo();
+            } catch (\Throwable $e) {
+                return redirect()->route('install.view', ['step' => 1]);
+            }
         }
 
         return view('installer::pages.step' . $step, [
@@ -150,5 +153,13 @@ class InstallerController
         return redirect()
             ->route('install.view', ['step' => $step + 1])
             ->with('app_redirect', TRUE);
+    }
+
+    public function step3()
+    {
+        return view('installer::pages.step3', [
+            'step' => 3,
+            'title' => $this->steps[3]
+        ]);
     }
 }
