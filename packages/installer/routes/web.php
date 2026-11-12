@@ -19,10 +19,12 @@ Route::prefix('install')
     ->middleware(['web', RedirectIfInstalled::class])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
     ->group(function () {
-        
-        Route::get('{step}', [InstallerController::class, 'view'])->where('step', '(1|2|3)')->name('view');
-        
-        Route::get('{step}/process', fn($step) => redirect()->route('install.view', ['step' => $step]));
+        Route::match(['GET', 'POST'], '{step}/process', function (\Illuminate\Http\Request $request, $step) {
+            if ($request->isMethod('POST')) {
+                return app(InstallerController::class)->process($request, $step);
+            }
+            return redirect()->route('install.view', ['step' => $step]);
+        })->where('step', '(1|2)')->name('process');
 
-        Route::post('{step}/process', [InstallerController::class, 'process'])->where('step', '(1|2)')->name('process');
+        Route::get('{step}', [InstallerController::class, 'view'])->where('step', '(1|2|3)')->name('view');
     });
